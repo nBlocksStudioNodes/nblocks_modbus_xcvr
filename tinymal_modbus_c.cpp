@@ -21,7 +21,7 @@ TinyMod::TinyMod(PinName pinTX, PinName pinRX, PinName pinDir, uint32_t baud,
 					uint32_t instrument_address, 
 					uint32_t start_register_address, 
 					uint32_t num_registers):
-					_ser(pinTX, pinRX), _driver_pin(pinDir) {
+					_ser(pinTX, pinRX), _dir_out(pinDir) {
 	// Store construction arguments
 	_inst_address = instrument_address;
 	_reg_start = start_register_address;
@@ -32,10 +32,10 @@ TinyMod::TinyMod(PinName pinTX, PinName pinRX, PinName pinDir, uint32_t baud,
 
 	// Initialize peripherals
     
-    _dir_out->write(0);
+    _dir_out.write(0);
     
-    _ser->attach(this, &TinyMod::_serial_TX, Serial::TxIrq);
-    _ser->attach(this, &TinyMod::_serial_RX, Serial::RxIrq);
+    _ser.attach(this, &TinyMod::_serial_TX, Serial::TxIrq);
+    _ser.attach(this, &TinyMod::_serial_RX, Serial::RxIrq);
 
     _ticker.attach(this, &TinyMod::_timeoutTick, 0.0001);
     
@@ -64,7 +64,7 @@ void TinyMod::_serial_TX() {
     }
     else {
         wait(0.000050);
-        _dir_out->write(0);
+        _dir_out.write(0);
         _tx_completed = 1;
     }
 }
@@ -74,7 +74,7 @@ void TinyMod::_serial_TX() {
  */
 void TinyMod::_serial_RX() {
     char c;
-    c = _ser->getc();
+    c = _ser.getc();
     if (_buffer_rx_cursor < 256) {
        // Adds this char to buffer
        _buffer_rx[ _buffer_rx_cursor ] = c;
@@ -96,9 +96,9 @@ void TinyMod::_timeoutTick() {
 
 void TinyMod::_startTransmission(void) {
     if (_buffer_tx_cursor < _buffer_tx_length) {
-        _dir_out->write(1);
+        _dir_out.write(1);
         _tx_completed = 0;
-        _ser->putc(_buffer_tx[_buffer_tx_cursor]);
+        _ser.putc(_buffer_tx[_buffer_tx_cursor]);
         _buffer_tx_cursor++;
     }
 }
@@ -142,7 +142,7 @@ TinyMod_AffectedRegs TinyMod::_readRegisters(uint8_t * buf, uint32_t buflen) {
 		_buffer_tx[2] = reg_count*2; 
 		len = 3;
 		for (i = 0; i<reg_count; i++) {
-			val = _regs[start_index + i];
+			val = _regs[start_index + i].value;
 			_buffer_tx[3 + 2*i] = (val >> 8) & 0xFF;
 			_buffer_tx[4 + 2*i] = (val     ) & 0xFF;
 			len += 2;
@@ -155,7 +155,7 @@ TinyMod_AffectedRegs TinyMod::_readRegisters(uint8_t * buf, uint32_t buflen) {
 		_buffer_tx_cursor = 0;
 		_buffer_tx_length = len;
 		
-		_dir_out->write(1);
+		_dir_out.write(1);
 		
 		wait(0.0019);
 
@@ -177,7 +177,10 @@ TinyMod_AffectedRegs TinyMod::_writeRegisters(uint8_t * buf, uint32_t buflen) {
     uint16_t start_addr, reg_count, byte_count, val, crc;
     int i;
     
-	if (buflen < 5) return;
+	TinyMod_AffectedRegs result;
+	result.operation = MODBUS_IDLE;
+	
+	if (buflen < 5) return result;
 	start_addr = ((uint16_t)buf[0] << 8) | buf[1];
 	reg_count  = ((uint16_t)buf[2] << 8) | buf[3];
 	uint32_t end_addr = start_addr + reg_count - 1;
@@ -194,7 +197,7 @@ TinyMod_AffectedRegs TinyMod::_writeRegisters(uint8_t * buf, uint32_t buflen) {
 		// Write registers
 		for (i=0; i<reg_count; i++) {
 			val = ((uint16_t)buf[5 + 2*i] << 8) | (uint8_t)buf[6 + 2*i];
-			_regs[start_index + i] = val;
+			_regs[start_index + i].value = val;
 		}
 		
 		// Response
@@ -212,7 +215,7 @@ TinyMod_AffectedRegs TinyMod::_writeRegisters(uint8_t * buf, uint32_t buflen) {
 		_buffer_tx_cursor = 0;
 		_buffer_tx_length = 8;
 
-		_dir_out->write(1);
+		_dir_out.write(1);
 		wait(0.0019);
 		
 		_startTransmission();
