@@ -1,0 +1,72 @@
+{
+    "category": "Modbus",
+    "inputs": 1, 
+    "name": "MODBUS_XCVR", 
+    "parameters": [
+        {
+            "default": "P0_19", 
+            "type": "raw", 
+            "name": "pinTX", 
+            "value": "P0_19", 
+            "options": []
+        }, 
+        {
+            "default": "P0_18", 
+            "type": "raw", 
+            "name": "pinRX", 
+            "value": "P0_18", 
+            "options": []
+        }, 
+        {
+            "default": "P0_2", 
+            "type": "raw", 
+            "name": "pinDir", 
+            "value": "P0_2", 
+            "options": []
+        }, 
+        {
+            "default": "38400", 
+            "type": "raw", 
+            "name": "baud", 
+            "value": "38400", 
+            "options": []
+        }, 
+        {
+            "default": "32", 
+            "type": "raw", 
+            "name": "ModbusAddress", 
+            "value": "32", 
+            "options": []
+		},
+        {
+            "default": "0", 
+            "type": "raw", 
+            "name": "StartRegisterAddress", 
+            "value": "0", 
+            "options": []
+		},
+        {
+            "default": "8", 
+            "type": "raw", 
+            "name": "NumberOfRegisters", 
+            "value": "8", 
+            "options": []
+		}
+	    
+    ], 
+    "outputs": 1, 
+    "labels": {
+        "input": ["Set"], 
+        "output": ["Get"]
+    }, 
+    "schematic_pins": {
+        "inputs": [
+            1
+        ], 
+        "outputs": [
+            2
+        ]
+    }, 
+    "repository": "https://github.com/nblocksStudioNodes/nblocks_modbus_xcvr", 
+    "revision": ""
+}
