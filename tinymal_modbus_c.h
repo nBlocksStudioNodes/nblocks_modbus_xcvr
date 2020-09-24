@@ -73,7 +73,7 @@ private:
 	TinyMod_AffectedRegs _writeRegisters(uint8_t * buf, uint32_t buflen);
 	TinyMod_AffectedRegs _processMessage(void);
 
-}
+};
 
 
 
