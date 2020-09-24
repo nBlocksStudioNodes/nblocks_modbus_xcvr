@@ -190,7 +190,7 @@ TinyMod_AffectedRegs TinyMod::_writeRegisters(uint8_t * buf, uint32_t buflen) {
 	// requested is 16-18, start_index is 4
 	uint32_t start_index = start_addr - _reg_start;
 	
-	if (byte_count != (reg_count*2)) return;
+	if (byte_count != (reg_count*2)) return result;
 	// Integrity check - only proceed if the requested registers are
 	// all within the available range
 	if ( (start_addr >= _reg_start) && (end_addr <= _reg_end) && (reg_count <= 124)) {
@@ -293,11 +293,11 @@ TinyMod_AffectedRegs TinyMod::check() {
 
 
 void TinyMod::setRegister(int index, uint16_t value) {
-	_regs[index] = value;
+	_regs[index].value = value;
 }
 
 uint16_t TinyMod::getRegister(int index) {
-	return _regs[index];
+	return _regs[index].value;
 }
 
 uint32_t TinyMod::registerNumberFromIndex(int index) {
