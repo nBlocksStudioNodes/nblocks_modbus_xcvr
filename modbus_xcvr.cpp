@@ -1,6 +1,6 @@
 #include "modbus_xcvr.h"
 
-nBlock_modbus_xcvr::nBlock_MODBUS_XCVR(PinName pinTX, PinName pinRX, PinName pinDir, uint32_t baud,
+nBlock_MODBUS_XCVR::nBlock_MODBUS_XCVR(PinName pinTX, PinName pinRX, PinName pinDir, uint32_t baud,
 				uint32_t instrument_address, 
 				uint32_t start_register_address, 
 				uint32_t num_registers): 
@@ -18,7 +18,7 @@ void nBlock_MODBUS_XCVR::triggerInput(nBlocks_Message message) {
     // tiny_regs[1] = reg_data
 }
 void nBlock_MODBUS_XCVR::endFrame(void) {
-	TinyMod_AffectedRegs result = _tinymod.Check();
+	TinyMod_AffectedRegs result = _tinymod.check();
 	
 	// if last operation was MODBUS_FUNC_WRITE_MULT, the master has just
 	// modified the registers. Emit output messages for the ones which
@@ -31,7 +31,7 @@ void nBlock_MODBUS_XCVR::endFrame(void) {
 			_modified_regs[i].value = _tinymod.getRegister(offset);
 		}
 		
-        output[0] = _modified_regs; 
+        output[0] = (uint32_t)(_modified_regs); 
         available[0] = result.count;
 	}
     return;
