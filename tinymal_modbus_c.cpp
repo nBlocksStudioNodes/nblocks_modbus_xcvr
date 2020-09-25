@@ -34,8 +34,9 @@ TinyMod::TinyMod(PinName pinTX, PinName pinRX, PinName pinDir, uint32_t baud,
     
     _dir_out.write(0);
     
-    _ser.attach(this, &TinyMod::_serial_TX, Serial::TxIrq);
-    _ser.attach(this, &TinyMod::_serial_RX, Serial::RxIrq);
+	_ser.baud(baud);
+	_ser.attach(callback(this, &TinyMod::_serial_TX), Serial::TxIrq);
+	_ser.attach(callback(this, &TinyMod::_serial_RX), Serial::RxIrq);
 
     _ticker.attach(this, &TinyMod::_timeoutTick, 0.0001);
     
@@ -239,6 +240,8 @@ TinyMod_AffectedRegs TinyMod::_processMessage(void) {
     int func_num;
     uint16_t rc_chksum, cl_chksum;
 	
+	TinyMod_AffectedRegs result;
+	result.operation = MODBUS_IDLE;
 
     // Ignore if less than 4 chars (wee need at least address, function, checksum)
     if (_buffer_rx_cursor >= 4) {
@@ -257,10 +260,12 @@ TinyMod_AffectedRegs TinyMod::_processMessage(void) {
 				switch (func_num) {
 					
 					case MODBUS_FUNC_READ:
-						return _readRegisters(    (uint8_t *)&_buffer_rx[2], _buffer_rx_cursor-4) ;
+						result = _readRegisters(    (uint8_t *)&_buffer_rx[2], _buffer_rx_cursor-4) ;
+						break;
 					
 					case MODBUS_FUNC_WRITE_MULT:
-						return _writeRegisters(   (uint8_t *)&_buffer_rx[2], _buffer_rx_cursor-4) ;
+						result = _writeRegisters(   (uint8_t *)&_buffer_rx[2], _buffer_rx_cursor-4) ;
+						break;
 				}
 				
             }
@@ -270,9 +275,6 @@ TinyMod_AffectedRegs TinyMod::_processMessage(void) {
     
     _buffer_rx_cursor = 0;
 
-	// If conditions are not met, returns idle
-	TinyMod_AffectedRegs result;
-	result.operation = MODBUS_IDLE;
 	return result;
 }
 
